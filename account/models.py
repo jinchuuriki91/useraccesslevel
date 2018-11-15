@@ -1,33 +1,12 @@
 # Django imports
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 # Project imports
 from base.models import ModelBase
 
 
-class UserLevelManager(models.Manager):
-
-    def add_entry(self, user, level=None):
-        """ """
-        try:
-            func_tag = "UserLevelManager:add_entry"
-            obj, status = self.update_or_create(user=user, defaults={"level": level})
-            return obj
-        except Exception as exc:
-            raise exc
-
-    def get_organizations(self, user):
-        """Returns all the organizations. """
-        try:
-            func_tag = "UserLevelManager:get_organizations"
-            return self.filter(level=UserLevel.ORG, is_active=True)
-        except Exception as exc:
-            raise exc
-
-
-class UserLevel(ModelBase):
-
+class User(AbstractUser, ModelBase):
     ORG = -1
     SUPERADMIN = 0
     PROCESSADMIN = 1
@@ -38,11 +17,28 @@ class UserLevel(ModelBase):
         (PROCESSADMIN, "Process Admin"),
         (USER, "User")
     )
-    
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=False)
+
     level = models.IntegerField(choices=USER_LEVEL, default=USER)
 
-    objects = UserLevelManager()
-
     def __str__(self):
-        return "%s (%s)" % (self.user.username, self.level)
+        return "%s (%s)" % (self.username, self.level)
+
+
+class OrganizationAdminManager(models.Manager):
+
+    def add_org_admin(self, caller, org, super_admin):
+        """ """
+        try:
+            func_tag = "OrganizationAdminManager:add_org_admin"
+            return self.create(org=org, admin=super_admin) if caller.is_superuser else None
+        except Exception as exc:
+            raise exc
+
+
+class OrganizationSuperAdmin(ModelBase):
+    org = models.ForeignKey(User, on_delete=models.CASCADE, null=False, related_name="org_super_admin")
+    admin = models.ForeignKey(User, on_delete=models.CASCADE, null=False)
+    objects = OrganizationAdminManager()
+
+    class Meta:
+        unique_together = ("org", "admin")

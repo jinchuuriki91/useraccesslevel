@@ -10,6 +10,7 @@ DEBUG = bool(os.environ.get("DEBUG"))
 ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
+    'account',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -17,7 +18,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'account'
+    'process'
 ]
 
 MIDDLEWARE = [
@@ -67,6 +68,8 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     )
 }
+
+AUTH_USER_MODEL = 'account.User'
 
 LANGUAGE_CODE = 'en-us'
 
